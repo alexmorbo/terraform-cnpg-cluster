@@ -4,6 +4,14 @@ output "connection_uri" {
   sensitive = true
 }
 
+output "host" {
+  value = kubernetes_secret.auth.data.host
+}
+
+output "port" {
+  value = kubernetes_secret.auth.data.port
+}
+
 output "database_name" {
   value = local.database_name
 }

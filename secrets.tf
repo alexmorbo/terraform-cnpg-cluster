@@ -15,7 +15,7 @@ resource "kubernetes_secret" "auth" {
 
   data = {
     dbname   = local.database_name
-    host     = "${local.cluster_name}-rw"
+    host     = "${local.cluster_name}-rw.${local.namespace}.svc.cluster.local"
     jdbc-uri = "jdbc:postgresql://${local.cluster_name}-rw.${local.namespace}:5432/${local.database_name}?password=${local.database_password}&user=${local.database_user}"
     password = local.database_password
     pgpass   = "${local.cluster_name}-rw.${local.namespace}:5432:${local.database_name}:${local.database_user}:${local.database_password}"

@@ -69,5 +69,7 @@ No modules.
 | <a name="output_database_name"></a> [database\_name](#output\_database\_name) | n/a |
 | <a name="output_database_password"></a> [database\_password](#output\_database\_password) | n/a |
 | <a name="output_database_user"></a> [database\_user](#output\_database\_user) | n/a |
+| <a name="output_host"></a> [host](#output\_host) | n/a |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | n/a |
+| <a name="output_port"></a> [port](#output\_port) | n/a |
 <!-- END_TF_DOCS -->
