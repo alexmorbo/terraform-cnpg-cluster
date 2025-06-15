@@ -116,6 +116,12 @@ variable "database_locale_ctype" {
   default = "en_US.UTF8"
 }
 
+variable "database_post_init_sql" {
+  type = list(string)
+
+  default = null
+}
+
 variable "barman_object_store" {
   type = object({
     endpointURL = string

@@ -20,6 +20,13 @@ locals {
     })
   )
 
+  database_post_init_sql = [
+    for sql in var.database_post_init_sql : replace(
+      sql,
+      "%DB_OWNER%", local.database_user
+    )
+  ]
+
   values = {
     fullnameOverride = local.cluster_name
     type             = "postgresql"
@@ -48,6 +55,7 @@ locals {
         }
         localeCollate = var.database_locale_collate
         localeCType   = var.database_locale_ctype
+        postInitSQL   = local.database_post_init_sql
       }
     }
     backups = local.backup
