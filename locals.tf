@@ -20,12 +20,16 @@ locals {
     })
   )
 
-  database_post_init_sql = [
-    for sql in var.database_post_init_sql : replace(
-      sql,
-      "%DB_OWNER%", local.database_user
-    )
-  ]
+  database_post_init_sql = (
+    var.database_post_init_sql == null || length(var.database_post_init_sql) == 0
+    ? null
+    : [
+      for sql in var.database_post_init_sql : replace(
+        sql,
+        "%DB_OWNER%", local.database_user
+      )
+    ]
+  )
 
   values = {
     fullnameOverride = local.cluster_name

@@ -119,7 +119,7 @@ variable "database_locale_ctype" {
 variable "database_post_init_sql" {
   type = list(string)
 
-  default = null
+  default = []
 }
 
 variable "barman_object_store" {

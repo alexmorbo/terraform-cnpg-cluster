@@ -47,7 +47,7 @@ No modules.
 | <a name="input_database_password"></a> [database\_password](#input\_database\_password) | n/a | `string` | `null` | no |
 | <a name="input_database_password_length"></a> [database\_password\_length](#input\_database\_password\_length) | n/a | `number` | `24` | no |
 | <a name="input_database_password_special"></a> [database\_password\_special](#input\_database\_password\_special) | n/a | `bool` | `true` | no |
-| <a name="input_database_post_init_sql"></a> [database\_post\_init\_sql](#input\_database\_post\_init\_sql) | n/a | `list(string)` | `null` | no |
+| <a name="input_database_post_init_sql"></a> [database\_post\_init\_sql](#input\_database\_post\_init\_sql) | n/a | `list(string)` | `[]` | no |
 | <a name="input_database_user"></a> [database\_user](#input\_database\_user) | n/a | `string` | `null` | no |
 | <a name="input_mode"></a> [mode](#input\_mode) | n/a | `string` | `"standalone"` | no |
 | <a name="input_monitoring_enabled"></a> [monitoring\_enabled](#input\_monitoring\_enabled) | n/a | `bool` | `false` | no |
