@@ -6,6 +6,13 @@ locals {
   database_user     = coalesce(var.database_user, var.name)
   database_password = var.database_password == null ? random_password.database_password[0].result : var.database_password
 
+  # Connection details
+  host     = "${local.cluster_name}-rw.${local.namespace}.svc.cluster.local"
+  port     = "5432"
+  dbname   = local.database_name
+  user     = local.database_user
+  username = local.database_user
+
   barman_object_store = try(var.barman_object_store, {})
   backup = merge(
     {

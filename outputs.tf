@@ -5,11 +5,11 @@ output "connection_uri" {
 }
 
 output "host" {
-  value = kubernetes_secret.auth.data.host
+  value = local.host
 }
 
 output "port" {
-  value = kubernetes_secret.auth.data.port
+  value = local.port
 }
 
 output "database_name" {

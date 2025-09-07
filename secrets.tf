@@ -14,14 +14,14 @@ resource "kubernetes_secret" "auth" {
   }
 
   data = {
-    dbname   = local.database_name
-    host     = "${local.cluster_name}-rw.${local.namespace}.svc.cluster.local"
-    jdbc-uri = "jdbc:postgresql://${local.cluster_name}-rw.${local.namespace}:5432/${local.database_name}?password=${local.database_password}&user=${local.database_user}"
+    dbname   = local.dbname
+    host     = local.host
+    jdbc-uri = "jdbc:postgresql://${local.host}:${local.port}/${local.dbname}?password=${local.database_password}&user=${local.user}"
     password = local.database_password
-    pgpass   = "${local.cluster_name}-rw.${local.namespace}:5432:${local.database_name}:${local.database_user}:${local.database_password}"
-    port     = "5432"
-    uri      = "postgresql://${local.database_user}:${local.database_password}@${local.cluster_name}-rw.${local.namespace}.svc.cluster.local:5432"
-    user     = local.database_user
-    username = local.database_user
+    pgpass   = "${local.host}:${local.port}:${local.dbname}:${local.user}:${local.database_password}"
+    port     = local.port
+    uri      = "postgresql://${local.user}:${local.database_password}@${local.host}:${local.port}"
+    user     = local.user
+    username = local.username
   }
 }
