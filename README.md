@@ -57,6 +57,7 @@ No modules.
 | <a name="input_override_cluster_name"></a> [override\_cluster\_name](#input\_override\_cluster\_name) | n/a | `string` | `null` | no |
 | <a name="input_postgresql_version"></a> [postgresql\_version](#input\_postgresql\_version) | n/a | `string` | `"16"` | no |
 | <a name="input_replicas"></a> [replicas](#input\_replicas) | n/a | `number` | `1` | no |
+| <a name="input_resources"></a> [resources](#input\_resources) | Resource requests and limits for PostgreSQL pods | <pre>object({<br/>    requests = optional(map(string), {})<br/>    limits   = optional(map(string), {})<br/>  })</pre> | `null` | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | n/a | `string` | `null` | no |
 | <a name="input_storage_size"></a> [storage\_size](#input\_storage\_size) | n/a | `string` | `"10Gi"` | no |
 | <a name="input_tolerations"></a> [tolerations](#input\_tolerations) | n/a | `list(map(any))` | `[]` | no |

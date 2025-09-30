@@ -153,3 +153,13 @@ variable "backups_path" {
 
   default = "/"
 }
+
+variable "resources" {
+  type = object({
+    requests = optional(map(string), {})
+    limits   = optional(map(string), {})
+  })
+  description = "Resource requests and limits for PostgreSQL pods"
+
+  default = null
+}

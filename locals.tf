@@ -45,30 +45,37 @@ locals {
     version = {
       postgresql = var.postgresql_version
     }
-    cluster = {
-      instances = var.replicas
-      storage = {
-        size         = var.storage_size
-        storageClass = var.storage_class
-      }
-      affinity = {
-        nodeSelector = var.node_selector
-        tolerations  = var.tolerations
-      }
-      monitoring = {
-        enabled = var.monitoring_enabled
-      }
-      initdb = {
-        database = kubernetes_secret.auth.data.dbname
-        owner    = kubernetes_secret.auth.data.username
-        secret = {
-          name = kubernetes_secret.auth.metadata[0].name
+    cluster = merge(
+      {
+        instances = var.replicas
+        storage = merge(
+          { size = var.storage_size },
+          var.storage_class != null ? { storageClass = var.storage_class } : {}
+        )
+        monitoring = {
+          enabled = var.monitoring_enabled
         }
-        localeCollate = var.database_locale_collate
-        localeCType   = var.database_locale_ctype
-        postInitSQL   = local.database_post_init_sql
-      }
-    }
+        initdb = merge(
+          {
+            database = kubernetes_secret.auth.data.dbname
+            owner    = kubernetes_secret.auth.data.username
+            secret = {
+              name = kubernetes_secret.auth.metadata[0].name
+            }
+            localeCollate = var.database_locale_collate
+            localeCType   = var.database_locale_ctype
+          },
+          local.database_post_init_sql != null ? { postInitSQL = local.database_post_init_sql } : {}
+        )
+      },
+      length(var.node_selector) > 0 || length(var.tolerations) > 0 ? {
+        affinity = merge(
+          length(var.node_selector) > 0 ? { nodeSelector = var.node_selector } : {},
+          length(var.tolerations) > 0 ? { tolerations = var.tolerations } : {}
+        )
+      } : {},
+      var.resources != null ? { resources = var.resources } : {}
+    )
     backups = local.backup
   }
 }
