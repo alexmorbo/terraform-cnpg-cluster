@@ -163,3 +163,55 @@ variable "resources" {
 
   default = null
 }
+
+variable "pooler_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable PgBouncer connection pooler"
+}
+
+variable "pooler_instances" {
+  type        = number
+  default     = 3
+  description = "Number of pooler instances for HA"
+}
+
+variable "pooler_type" {
+  type        = string
+  default     = "rw"
+  description = "Pooler type: rw (read-write) or ro (read-only)"
+
+  validation {
+    condition     = contains(["rw", "ro"], var.pooler_type)
+    error_message = "pooler_type must be either 'rw' or 'ro'"
+  }
+}
+
+variable "pooler_pool_mode" {
+  type        = string
+  default     = "session"
+  description = "PgBouncer pool mode: session, transaction, or statement"
+
+  validation {
+    condition     = contains(["session", "transaction", "statement"], var.pooler_pool_mode)
+    error_message = "pooler_pool_mode must be 'session', 'transaction', or 'statement'"
+  }
+}
+
+variable "pooler_parameters" {
+  type = map(string)
+  default = {
+    max_client_conn   = "1000"
+    default_pool_size = "25"
+  }
+  description = "PgBouncer configuration parameters"
+}
+
+variable "pooler_resources" {
+  type = object({
+    requests = optional(map(string), {})
+    limits   = optional(map(string), {})
+  })
+  default     = null
+  description = "Resource requests and limits for pooler pods"
+}

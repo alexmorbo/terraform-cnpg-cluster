@@ -27,6 +27,7 @@ No modules.
 | Name | Type |
 |------|------|
 | [helm_release.database](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
+| [kubernetes_manifest.pooler](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_namespace.default](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_secret.auth](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [random_password.database_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
@@ -55,6 +56,12 @@ No modules.
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | n/a | `string` | `null` | no |
 | <a name="input_node_selector"></a> [node\_selector](#input\_node\_selector) | n/a | `map(string)` | `{}` | no |
 | <a name="input_override_cluster_name"></a> [override\_cluster\_name](#input\_override\_cluster\_name) | n/a | `string` | `null` | no |
+| <a name="input_pooler_enabled"></a> [pooler\_enabled](#input\_pooler\_enabled) | Enable PgBouncer connection pooler | `bool` | `false` | no |
+| <a name="input_pooler_instances"></a> [pooler\_instances](#input\_pooler\_instances) | Number of pooler instances for HA | `number` | `3` | no |
+| <a name="input_pooler_parameters"></a> [pooler\_parameters](#input\_pooler\_parameters) | PgBouncer configuration parameters | `map(string)` | <pre>{<br/>  "default_pool_size": "25",<br/>  "max_client_conn": "1000"<br/>}</pre> | no |
+| <a name="input_pooler_pool_mode"></a> [pooler\_pool\_mode](#input\_pooler\_pool\_mode) | PgBouncer pool mode: session, transaction, or statement | `string` | `"session"` | no |
+| <a name="input_pooler_resources"></a> [pooler\_resources](#input\_pooler\_resources) | Resource requests and limits for pooler pods | <pre>object({<br/>    requests = optional(map(string), {})<br/>    limits   = optional(map(string), {})<br/>  })</pre> | `null` | no |
+| <a name="input_pooler_type"></a> [pooler\_type](#input\_pooler\_type) | Pooler type: rw (read-write) or ro (read-only) | `string` | `"rw"` | no |
 | <a name="input_postgresql_version"></a> [postgresql\_version](#input\_postgresql\_version) | n/a | `string` | `"16"` | no |
 | <a name="input_replicas"></a> [replicas](#input\_replicas) | n/a | `number` | `1` | no |
 | <a name="input_resources"></a> [resources](#input\_resources) | Resource requests and limits for PostgreSQL pods | <pre>object({<br/>    requests = optional(map(string), {})<br/>    limits   = optional(map(string), {})<br/>  })</pre> | `null` | no |
@@ -71,7 +78,11 @@ No modules.
 | <a name="output_database_name"></a> [database\_name](#output\_database\_name) | n/a |
 | <a name="output_database_password"></a> [database\_password](#output\_database\_password) | n/a |
 | <a name="output_database_user"></a> [database\_user](#output\_database\_user) | n/a |
-| <a name="output_host"></a> [host](#output\_host) | n/a |
+| <a name="output_direct_host"></a> [direct\_host](#output\_direct\_host) | Direct database cluster rw endpoint (bypassing pooler) |
+| <a name="output_host"></a> [host](#output\_host) | Database host (pooler endpoint if enabled, otherwise cluster rw endpoint) |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | n/a |
+| <a name="output_pooler_enabled"></a> [pooler\_enabled](#output\_pooler\_enabled) | Whether PgBouncer pooler is enabled |
+| <a name="output_pooler_host"></a> [pooler\_host](#output\_pooler\_host) | Pooler service hostname (null if pooler disabled) |
+| <a name="output_pooler_service_name"></a> [pooler\_service\_name](#output\_pooler\_service\_name) | Pooler service name (null if pooler disabled) |
 | <a name="output_port"></a> [port](#output\_port) | n/a |
 <!-- END_TF_DOCS -->
