@@ -63,6 +63,7 @@ No modules.
 | <a name="input_pooler_resources"></a> [pooler\_resources](#input\_pooler\_resources) | Resource requests and limits for pooler pods | <pre>object({<br/>    requests = optional(map(string), {})<br/>    limits   = optional(map(string), {})<br/>  })</pre> | `null` | no |
 | <a name="input_pooler_type"></a> [pooler\_type](#input\_pooler\_type) | Pooler type: rw (read-write) or ro (read-only) | `string` | `"rw"` | no |
 | <a name="input_postgresql_version"></a> [postgresql\_version](#input\_postgresql\_version) | n/a | `string` | `"16"` | no |
+| <a name="input_recovery"></a> [recovery](#input\_recovery) | n/a | `any` | `null` | no |
 | <a name="input_replicas"></a> [replicas](#input\_replicas) | n/a | `number` | `1` | no |
 | <a name="input_resources"></a> [resources](#input\_resources) | Resource requests and limits for PostgreSQL pods | <pre>object({<br/>    requests = optional(map(string), {})<br/>    limits   = optional(map(string), {})<br/>  })</pre> | `null` | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | n/a | `string` | `null` | no |

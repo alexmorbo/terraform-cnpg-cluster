@@ -233,3 +233,9 @@ variable "pooler_resources" {
   default     = null
   description = "Resource requests and limits for pooler pods"
 }
+
+variable "recovery" {
+  type = any
+
+  default = null
+}

@@ -83,6 +83,7 @@ locals {
       } : {},
       var.resources != null ? { resources = var.resources } : {}
     )
-    backups = local.backup
+    recovery = var.recovery
+    backups  = local.backup
   }
 }
