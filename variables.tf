@@ -86,6 +86,24 @@ variable "storage_class" {
   default = null
 }
 
+variable "wal_storage_enabled" {
+  type = bool
+
+  default = false
+}
+
+variable "wal_storage_size" {
+  type = string
+
+  default = "1Gi"
+}
+
+variable "wal_storage_class" {
+  type = string
+
+  default = null
+}
+
 variable "node_selector" {
   type = map(string)
 

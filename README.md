@@ -68,6 +68,9 @@ No modules.
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | n/a | `string` | `null` | no |
 | <a name="input_storage_size"></a> [storage\_size](#input\_storage\_size) | n/a | `string` | `"10Gi"` | no |
 | <a name="input_tolerations"></a> [tolerations](#input\_tolerations) | n/a | `list(map(any))` | `[]` | no |
+| <a name="input_wal_storage_class"></a> [wal\_storage\_class](#input\_wal\_storage\_class) | n/a | `string` | `null` | no |
+| <a name="input_wal_storage_enabled"></a> [wal\_storage\_enabled](#input\_wal\_storage\_enabled) | n/a | `bool` | `false` | no |
+| <a name="input_wal_storage_size"></a> [wal\_storage\_size](#input\_wal\_storage\_size) | n/a | `string` | `"1Gi"` | no |
 
 ## Outputs
 

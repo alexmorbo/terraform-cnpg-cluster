@@ -52,6 +52,13 @@ locals {
           { size = var.storage_size },
           var.storage_class != null ? { storageClass = var.storage_class } : {}
         )
+        walStorage = merge(
+          {
+            enabled = var.wal_storage_enabled
+            size    = var.wal_storage_size
+          },
+          var.wal_storage_class != null ? { storageClass = var.wal_storage_class } : {}
+        )
         monitoring = {
           enabled = var.monitoring_enabled
         }
