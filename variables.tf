@@ -5,7 +5,7 @@ variable "name" {
 variable "chart_version" {
   type = string
 
-  default = "0.3.1"
+  default = "0.5.0"
 }
 
 variable "override_cluster_name" {
@@ -182,60 +182,101 @@ variable "resources" {
   default = null
 }
 
-variable "pooler_enabled" {
-  type        = bool
-  default     = false
-  description = "Enable PgBouncer connection pooler"
-}
+variable "poolers" {
+  description = "PgBouncer connection poolers (CNPG 0.5.0+)"
+  type = list(object({
+    name      = string
+    type      = optional(string, "rw")
+    instances = optional(number, 3)
+    poolMode  = optional(string, "transaction")
+    parameters = optional(map(string), {
+      max_client_conn   = "1000"
+      default_pool_size = "25"
+    })
+    monitoring = optional(object({
+      enabled = optional(bool, false)
+    }))
+    template = optional(object({
+      spec = optional(object({
+        containers = optional(list(object({
+          name = string
+          resources = optional(object({
+            requests = optional(map(string), {})
+            limits   = optional(map(string), {})
+          }))
+        })))
+        nodeSelector = optional(map(string))
+        tolerations = optional(list(object({
+          key      = optional(string)
+          operator = optional(string, "Equal")
+          value    = optional(string)
+          effect   = optional(string)
+        })))
+      }))
+    }))
+  }))
 
-variable "pooler_instances" {
-  type        = number
-  default     = 3
-  description = "Number of pooler instances for HA"
-}
-
-variable "pooler_type" {
-  type        = string
-  default     = "rw"
-  description = "Pooler type: rw (read-write) or ro (read-only)"
-
-  validation {
-    condition     = contains(["rw", "ro"], var.pooler_type)
-    error_message = "pooler_type must be either 'rw' or 'ro'"
-  }
-}
-
-variable "pooler_pool_mode" {
-  type        = string
-  default     = "session"
-  description = "PgBouncer pool mode: session, transaction, or statement"
-
-  validation {
-    condition     = contains(["session", "transaction", "statement"], var.pooler_pool_mode)
-    error_message = "pooler_pool_mode must be 'session', 'transaction', or 'statement'"
-  }
-}
-
-variable "pooler_parameters" {
-  type = map(string)
-  default = {
-    max_client_conn   = "1000"
-    default_pool_size = "25"
-  }
-  description = "PgBouncer configuration parameters"
-}
-
-variable "pooler_resources" {
-  type = object({
-    requests = optional(map(string), {})
-    limits   = optional(map(string), {})
-  })
-  default     = null
-  description = "Resource requests and limits for pooler pods"
+  default = []
 }
 
 variable "recovery" {
   type = any
 
   default = null
+}
+
+variable "databases" {
+  description = "Additional databases to create (CNPG 0.5.0+)"
+  type = list(object({
+    name                  = string
+    ensure                = optional(string, "present")
+    owner                 = optional(string)
+    encoding              = optional(string, "UTF8")
+    template              = optional(string)
+    tablespace            = optional(string)
+    connectionLimit       = optional(number, -1)
+    isTemplate            = optional(bool, false)
+    locale                = optional(string)
+    localeProvider        = optional(string)
+    localeCollate         = optional(string)
+    localeCType           = optional(string)
+    icuLocale             = optional(string)
+    icuRules              = optional(string)
+    databaseReclaimPolicy = optional(string, "retain")
+    extensions = optional(list(object({
+      name    = string
+      ensure  = optional(string, "present")
+      version = optional(string)
+      schema  = optional(string)
+    })), [])
+    schemas = optional(list(object({
+      name   = string
+      owner  = optional(string)
+      ensure = optional(string, "present")
+    })), [])
+  }))
+
+  default = []
+}
+
+variable "roles" {
+  description = "PostgreSQL roles to create (CNPG 0.5.0+)"
+  type = list(object({
+    name             = string
+    ensure           = optional(string, "present")
+    login            = optional(bool, true)
+    superuser        = optional(bool, false)
+    createdb         = optional(bool, false)
+    createrole       = optional(bool, false)
+    inherit          = optional(bool, true)
+    replication      = optional(bool, false)
+    bypassrls        = optional(bool, false)
+    connectionLimit  = optional(number, -1)
+    inRoles          = optional(list(string), [])
+    password         = optional(string)
+    password_length  = optional(number, 24)
+    password_special = optional(bool, false)
+  }))
+
+  default = []
 }

@@ -5,8 +5,8 @@ output "connection_uri" {
 }
 
 output "host" {
-  value       = local.pooler_host
-  description = "Database host (pooler endpoint if enabled, otherwise cluster rw endpoint)"
+  value       = local.host
+  description = "Direct database cluster rw endpoint"
 }
 
 output "port" {
@@ -34,22 +34,40 @@ output "namespace" {
   value = local.namespace
 }
 
-output "pooler_enabled" {
-  value       = var.pooler_enabled
-  description = "Whether PgBouncer pooler is enabled"
+output "pooler_hosts" {
+  value       = local.pooler_hosts
+  description = "Map of pooler hosts: pooler name => host"
 }
 
-output "pooler_host" {
-  value       = var.pooler_enabled ? local.pooler_host : null
-  description = "Pooler service hostname (null if pooler disabled)"
+output "databases" {
+  value = [
+    for db in var.databases : {
+      name  = db.name
+      owner = db.owner
+    }
+  ]
+  description = "List of additional databases (name and owner)"
 }
 
-output "pooler_service_name" {
-  value       = var.pooler_enabled ? local.pooler_name : null
-  description = "Pooler service name (null if pooler disabled)"
+output "roles" {
+  value = {
+    for role in var.roles : role.name => {
+      name        = role.name
+      login       = role.login
+      secret_name = role.login ? kubernetes_secret.role_credentials[role.name].metadata[0].name : null
+    }
+  }
+  description = "Map of roles with secret names"
 }
 
-output "direct_host" {
-  value       = local.host
-  description = "Direct database cluster rw endpoint (bypassing pooler)"
+output "role_credentials" {
+  value = {
+    for role in var.roles : role.name => merge(
+      kubernetes_secret.role_credentials[role.name].data,
+      { secret_name = kubernetes_secret.role_credentials[role.name].metadata[0].name }
+    )
+    if role.login == true
+  }
+  sensitive   = true
+  description = "Credentials for roles with login (includes URIs for direct and pooler connections)"
 }

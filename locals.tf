@@ -38,6 +38,68 @@ locals {
     ]
   )
 
+  # Transform databases for helm values
+  databases_values = [
+    for db in var.databases : {
+      for k, v in {
+        name                  = db.name
+        ensure                = db.ensure
+        owner                 = db.owner
+        encoding              = db.encoding
+        template              = db.template
+        tablespace            = db.tablespace
+        connectionLimit       = db.connectionLimit != -1 ? db.connectionLimit : null
+        isTemplate            = db.isTemplate == true ? true : null
+        locale                = db.locale
+        localeProvider        = db.localeProvider
+        localeCollate         = db.localeCollate
+        localeCType           = db.localeCType
+        icuLocale             = db.icuLocale
+        icuRules              = db.icuRules
+        databaseReclaimPolicy = db.databaseReclaimPolicy
+        extensions = length(db.extensions) > 0 ? [
+          for ext in db.extensions : {
+            for ek, ev in {
+              name    = ext.name
+              ensure  = ext.ensure
+              version = ext.version
+              schema  = ext.schema
+            } : ek => ev if ev != null
+          }
+        ] : null
+        schemas = length(db.schemas) > 0 ? [
+          for schema in db.schemas : {
+            for sk, sv in {
+              name   = schema.name
+              owner  = schema.owner
+              ensure = schema.ensure
+            } : sk => sv if sv != null
+          }
+        ] : null
+      } : k => v if v != null
+    }
+  ]
+
+  # Transform roles for helm values
+  roles_values = [
+    for role in var.roles : {
+      for k, v in {
+        name            = role.name
+        ensure          = role.ensure
+        login           = role.login
+        superuser       = role.superuser
+        createdb        = role.createdb
+        createrole      = role.createrole
+        inherit         = role.inherit
+        replication     = role.replication
+        bypassrls       = role.bypassrls
+        connectionLimit = role.connectionLimit != -1 ? role.connectionLimit : null
+        inRoles         = length(role.inRoles) > 0 ? role.inRoles : null
+        passwordSecret  = role.login == true ? { name = kubernetes_secret.role_credentials[role.name].metadata[0].name } : null
+      } : k => v if v != null
+    }
+  ]
+
   values = {
     fullnameOverride = local.cluster_name
     type             = "postgresql"
@@ -81,9 +143,12 @@ locals {
           length(var.tolerations) > 0 ? { tolerations = var.tolerations } : {}
         )
       } : {},
-      var.resources != null ? { resources = var.resources } : {}
+      var.resources != null ? { resources = var.resources } : {},
+      length(local.roles_values) > 0 ? { roles = local.roles_values } : {}
     )
-    recovery = var.recovery
-    backups  = local.backup
+    recovery  = var.recovery
+    backups   = local.backup
+    databases = length(local.databases_values) > 0 ? local.databases_values : null
+    poolers   = length(var.poolers) > 0 ? var.poolers : null
   }
 }
