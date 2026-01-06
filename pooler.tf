@@ -2,14 +2,16 @@ locals {
   pooler_name = "${local.cluster_name}-pooler-${var.pooler_type}"
   pooler_host = var.pooler_enabled ? "${local.pooler_name}.${local.namespace}.svc.cluster.local" : local.host
 
-  # Convert tolerations to proper Kubernetes format
+  # Convert tolerations to proper Kubernetes format (exclude null values to avoid perpetual diff)
   pooler_tolerations = [
     for t in var.tolerations : {
-      key               = lookup(t, "key", null)
-      operator          = lookup(t, "operator", "Equal")
-      value             = lookup(t, "value", null)
-      effect            = lookup(t, "effect", null)
-      tolerationSeconds = lookup(t, "tolerationSeconds", null)
+      for k, v in {
+        key               = lookup(t, "key", null)
+        operator          = lookup(t, "operator", "Equal")
+        value             = lookup(t, "value", null)
+        effect            = lookup(t, "effect", null)
+        tolerationSeconds = lookup(t, "tolerationSeconds", null)
+      } : k => v if v != null
     }
   ]
 }
