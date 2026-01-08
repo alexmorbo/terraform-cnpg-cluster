@@ -149,6 +149,6 @@ locals {
     recovery  = var.recovery
     backups   = local.backup
     databases = length(local.databases_values) > 0 ? local.databases_values : null
-    poolers   = length(var.poolers) > 0 ? var.poolers : null
+    poolers   = coalesce(var.poolers, [])
   }
 }

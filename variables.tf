@@ -177,13 +177,13 @@ variable "resources" {
     requests = optional(map(string), {})
     limits   = optional(map(string), {})
   })
+
   description = "Resource requests and limits for PostgreSQL pods"
 
   default = null
 }
 
 variable "poolers" {
-  description = "PgBouncer connection poolers (CNPG 0.5.0+)"
   type = list(object({
     name      = string
     type      = optional(string, "rw")
@@ -216,7 +216,9 @@ variable "poolers" {
     }))
   }))
 
-  default = []
+  description = "PgBouncer connection poolers (CNPG 0.5.0+)"
+
+  default = null
 }
 
 variable "recovery" {
@@ -226,7 +228,6 @@ variable "recovery" {
 }
 
 variable "databases" {
-  description = "Additional databases to create (CNPG 0.5.0+)"
   type = list(object({
     name                  = string
     ensure                = optional(string, "present")
@@ -256,11 +257,12 @@ variable "databases" {
     })), [])
   }))
 
+  description = "Additional databases to create (CNPG 0.5.0+)"
+
   default = []
 }
 
 variable "roles" {
-  description = "PostgreSQL roles to create (CNPG 0.5.0+)"
   type = list(object({
     name             = string
     ensure           = optional(string, "present")
@@ -277,6 +279,8 @@ variable "roles" {
     password_length  = optional(number, 24)
     password_special = optional(bool, false)
   }))
+
+  description = "PostgreSQL roles to create (CNPG 0.5.0+)"
 
   default = []
 }

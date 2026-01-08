@@ -25,7 +25,7 @@ locals {
 
   # Pooler hosts map
   pooler_hosts = {
-    for p in var.poolers : p.name => "${local.cluster_name}-pooler-${p.name}.${local.namespace}.svc.cluster.local"
+    for p in coalesce(var.poolers, []) : p.name => "${local.cluster_name}-pooler-${p.name}.${local.namespace}.svc.cluster.local"
   }
 }
 
