@@ -144,6 +144,7 @@ locals {
         )
       } : {},
       var.resources != null ? { resources = var.resources } : {},
+      length(var.postgresql_parameters) > 0 ? { postgresql = { parameters = var.postgresql_parameters } } : {},
       length(local.roles_values) > 0 ? { roles = local.roles_values } : {}
     )
     recovery  = var.recovery

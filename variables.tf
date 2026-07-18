@@ -104,6 +104,14 @@ variable "wal_storage_class" {
   default = null
 }
 
+variable "postgresql_parameters" {
+  type = map(string)
+
+  description = "PostgreSQL parameters passed to spec.postgresql.parameters (cluster.postgresql.parameters in the CNPG cluster chart)"
+
+  default = {}
+}
+
 variable "node_selector" {
   type = map(string)
 
