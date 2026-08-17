@@ -100,6 +100,12 @@ locals {
     }
   ]
 
+  # spec.postgresql assembled from independent sources; omitted entirely when all are empty
+  postgresql_block = merge(
+    length(var.postgresql_parameters) > 0 ? { parameters = var.postgresql_parameters } : {},
+    length(var.shared_preload_libraries) > 0 ? { shared_preload_libraries = var.shared_preload_libraries } : {}
+  )
+
   values = {
     fullnameOverride = local.cluster_name
     type             = "postgresql"
@@ -144,7 +150,8 @@ locals {
         )
       } : {},
       var.resources != null ? { resources = var.resources } : {},
-      length(var.postgresql_parameters) > 0 ? { postgresql = { parameters = var.postgresql_parameters } } : {},
+      var.image_name != null ? { imageName = var.image_name } : {},
+      length(local.postgresql_block) > 0 ? { postgresql = local.postgresql_block } : {},
       length(local.roles_values) > 0 ? { roles = local.roles_values } : {}
     )
     recovery  = var.recovery

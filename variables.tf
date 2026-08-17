@@ -68,6 +68,14 @@ variable "postgresql_version" {
   default = "16"
 }
 
+variable "image_name" {
+  type = string
+
+  description = "Full container image name passed to spec.imageName (cluster.imageName in the CNPG cluster chart). Overrides the image derived from type and postgresql_version, e.g. an image bundling extra extensions"
+
+  default = null
+}
+
 variable "replicas" {
   type = number
 
@@ -110,6 +118,14 @@ variable "postgresql_parameters" {
   description = "PostgreSQL parameters passed to spec.postgresql.parameters (cluster.postgresql.parameters in the CNPG cluster chart)"
 
   default = {}
+}
+
+variable "shared_preload_libraries" {
+  type = list(string)
+
+  description = "Libraries preloaded at server start, passed to spec.postgresql.shared_preload_libraries (cluster.postgresql.shared_preload_libraries in the CNPG cluster chart)"
+
+  default = []
 }
 
 variable "node_selector" {
