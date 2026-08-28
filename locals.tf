@@ -1,30 +1,20 @@
 locals {
   cluster_name = coalesce(var.override_cluster_name, var.name)
-  namespace    = var.create_namespace ? coalesce(kubernetes_namespace.default[0].metadata[0].name, local.cluster_name) : coalesce(var.namespace, local.cluster_name)
+  namespace    = var.create_namespace ? kubernetes_namespace_v1.default[0].metadata[0].name : coalesce(var.namespace, local.cluster_name)
 
   database_name     = coalesce(var.database_name, var.name)
   database_user     = coalesce(var.database_user, var.name)
   database_password = var.database_password == null ? random_password.database_password[0].result : var.database_password
 
-  # Connection details
   host     = "${local.cluster_name}-rw.${local.namespace}.svc.cluster.local"
   port     = "5432"
   dbname   = local.database_name
   user     = local.database_user
   username = local.database_user
 
-  barman_object_store = try(var.barman_object_store, {})
-  backup = merge(
-    {
-      enabled = var.barman_object_store != null ? true : false
-    },
-    merge(local.barman_object_store, {
-      provider        = var.backups_provider
-      retentionPolicy = var.backups_retention_policy
-      s3 = merge(can(local.barman_object_store.s3) ? var.barman_object_store.s3 : {}, {
-        path = var.backups_path
-      })
-    })
+  image_name = coalesce(
+    var.image_name,
+    "${var.image_registry}/${var.image_repository}:${var.postgresql_version}-${var.image_flavour}-${var.image_distro}",
   )
 
   database_post_init_sql = (
@@ -38,7 +28,6 @@ locals {
     ]
   )
 
-  # Transform databases for helm values
   databases_values = [
     for db in var.databases : {
       for k, v in {
@@ -80,7 +69,6 @@ locals {
     }
   ]
 
-  # Transform roles for helm values
   roles_values = [
     for role in var.roles : {
       for k, v in {
@@ -95,27 +83,87 @@ locals {
         bypassrls       = role.bypassrls
         connectionLimit = role.connectionLimit != -1 ? role.connectionLimit : null
         inRoles         = length(role.inRoles) > 0 ? role.inRoles : null
-        passwordSecret  = role.login == true ? { name = kubernetes_secret.role_credentials[role.name].metadata[0].name } : null
+        passwordSecret  = role.login == true ? { name = kubernetes_secret_v1.role_credentials[role.name].metadata[0].name } : null
       } : k => v if v != null
     }
   ]
 
-  # spec.postgresql assembled from independent sources; omitted entirely when all are empty
-  postgresql_block = merge(
-    length(var.postgresql_parameters) > 0 ? { parameters = var.postgresql_parameters } : {},
-    length(var.shared_preload_libraries) > 0 ? { shared_preload_libraries = var.shared_preload_libraries } : {}
+  affinity = merge(
+    {
+      enablePodAntiAffinity = var.enable_pod_anti_affinity
+      podAntiAffinityType   = var.pod_anti_affinity_type
+      topologyKey           = var.topology_key
+    },
+    length(var.node_selector) > 0 ? { nodeSelector = var.node_selector } : {},
+    length(var.tolerations) > 0 ? { tolerations = var.tolerations } : {},
   )
 
-  values = {
+  monitoring_values = {
+    enabled = var.monitoring.enabled
+    podMonitor = {
+      enabled = var.monitoring.pod_monitor
+      labels  = var.monitoring.additional_labels
+    }
+    prometheusRule = {
+      enabled          = var.monitoring.prometheus_rule
+      excludeRules     = var.monitoring.exclude_rules
+      additionalLabels = var.monitoring.additional_labels
+    }
+    instrumentation = {
+      logicalReplication = var.monitoring.instrumentation_logical_replication
+      pgStatStatements   = var.monitoring.instrumentation_pg_stat_statements
+    }
+    tls                   = { enabled = var.monitoring.tls_enabled }
+    disableDefaultQueries = var.monitoring.disable_default_queries
+    customQueries         = var.monitoring.custom_queries
+  }
+
+  values = merge(local.values_base, local.values_optional)
+
+  values_optional = merge(
+    var.recovery != null ? { recovery = local.recovery_values } : {},
+    length(local.databases_values) > 0 ? { databases = local.databases_values } : {},
+    var.poolers != null ? { poolers = var.poolers } : {},
+  )
+
+  recovery_values = var.recovery == null ? null : merge(
+    var.recovery,
+    local.create_recovery_secret ? {
+      secret = {
+        create = false
+        name   = local.recovery_secret_name
+      }
+    } : {},
+  )
+
+  values_base = {
     fullnameOverride = local.cluster_name
     type             = "postgresql"
     mode             = var.mode
     version = {
       postgresql = var.postgresql_version
     }
+
     cluster = merge(
       {
-        instances = var.replicas
+        instances             = var.replicas
+        imageName             = local.image_name
+        affinity              = local.affinity
+        monitoring            = local.monitoring_values
+        enableSuperuserAccess = var.enable_superuser_access
+        enablePDB             = var.enable_pdb
+
+        plugins = local.backups_enabled ? [
+          {
+            name          = local.barman_plugin_name
+            enabled       = true
+            isWALArchiver = true
+            parameters = {
+              barmanObjectName = local.object_store_name
+            }
+          }
+        ] : []
+
         storage = merge(
           { size = var.storage_size },
           var.storage_class != null ? { storageClass = var.storage_class } : {}
@@ -127,15 +175,12 @@ locals {
           },
           var.wal_storage_class != null ? { storageClass = var.wal_storage_class } : {}
         )
-        monitoring = {
-          enabled = var.monitoring_enabled
-        }
         initdb = merge(
           {
-            database = kubernetes_secret.auth.data.dbname
-            owner    = kubernetes_secret.auth.data.username
+            database = local.dbname
+            owner    = local.username
             secret = {
-              name = kubernetes_secret.auth.metadata[0].name
+              name = kubernetes_secret_v1.auth.metadata[0].name
             }
             localeCollate = var.database_locale_collate
             localeCType   = var.database_locale_ctype
@@ -143,20 +188,16 @@ locals {
           local.database_post_init_sql != null ? { postInitSQL = local.database_post_init_sql } : {}
         )
       },
-      length(var.node_selector) > 0 || length(var.tolerations) > 0 ? {
-        affinity = merge(
-          length(var.node_selector) > 0 ? { nodeSelector = var.node_selector } : {},
-          length(var.tolerations) > 0 ? { tolerations = var.tolerations } : {}
+      var.resources != null ? { resources = var.resources } : {},
+      length(var.postgresql_parameters) > 0 || length(var.shared_preload_libraries) > 0 ? {
+        postgresql = merge(
+          length(var.postgresql_parameters) > 0 ? { parameters = var.postgresql_parameters } : {},
+          length(var.shared_preload_libraries) > 0 ? { shared_preload_libraries = var.shared_preload_libraries } : {},
         )
       } : {},
-      var.resources != null ? { resources = var.resources } : {},
-      var.image_name != null ? { imageName = var.image_name } : {},
-      length(local.postgresql_block) > 0 ? { postgresql = local.postgresql_block } : {},
       length(local.roles_values) > 0 ? { roles = local.roles_values } : {}
     )
-    recovery  = var.recovery
-    backups   = local.backup
-    databases = length(local.databases_values) > 0 ? local.databases_values : null
-    poolers   = coalesce(var.poolers, [])
+
+    backups = { enabled = false }
   }
 }

@@ -16,20 +16,18 @@ resource "random_password" "role_password" {
 }
 
 locals {
-  # Pre-compute role passwords for reuse
   role_passwords = {
     for role in var.roles : role.name => (
       role.password != null ? role.password : random_password.role_password[role.name].result
     ) if role.login == true
   }
 
-  # Pooler hosts map
   pooler_hosts = {
     for p in coalesce(var.poolers, []) : p.name => "${local.cluster_name}-pooler-${p.name}.${local.namespace}.svc.cluster.local"
   }
 }
 
-resource "kubernetes_secret" "role_credentials" {
+resource "kubernetes_secret_v1" "role_credentials" {
   for_each = {
     for role in var.roles : role.name => role
     if role.login == true
@@ -52,12 +50,10 @@ resource "kubernetes_secret" "role_credentials" {
       host     = local.host
       port     = local.port
     },
-    # Direct cluster URIs
     {
       uri      = "postgresql://${each.key}:${local.role_passwords[each.key]}@${local.host}:${local.port}"
       jdbc-uri = "jdbc:postgresql://${local.host}:${local.port}/?user=${each.key}&password=${local.role_passwords[each.key]}"
     },
-    # Pooler URIs for each pooler
     {
       for name, host in local.pooler_hosts : "pooler-${name}-host" => host
     },
@@ -70,7 +66,7 @@ resource "kubernetes_secret" "role_credentials" {
   )
 }
 
-resource "kubernetes_secret" "auth" {
+resource "kubernetes_secret_v1" "auth" {
   type = "kubernetes.io/basic-auth"
 
   metadata {

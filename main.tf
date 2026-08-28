@@ -1,4 +1,4 @@
-resource "kubernetes_namespace" "default" {
+resource "kubernetes_namespace_v1" "default" {
   count = var.create_namespace ? 1 : 0
 
   metadata {
@@ -15,4 +15,6 @@ resource "helm_release" "database" {
   version    = var.chart_version
 
   values = [yamlencode(local.values)]
+
+  depends_on = [kubernetes_manifest.object_store]
 }
