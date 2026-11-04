@@ -10,6 +10,14 @@ variable "chart_version" {
   default = "0.8.1"
 }
 
+variable "chart_repository" {
+  type = string
+
+  description = "Helm repository the cloudnative-pg/cluster chart is pulled from. Extracted so a mirror or a pull-through proxy is a one-line change; `oci://` URLs are accepted too."
+
+  default = "https://cloudnative-pg.io/charts/"
+}
+
 variable "override_cluster_name" {
   type = string
 

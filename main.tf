@@ -8,7 +8,7 @@ resource "kubernetes_namespace_v1" "default" {
 
 resource "helm_release" "database" {
   chart      = "cluster"
-  repository = "https://cloudnative-pg.io/charts/"
+  repository = var.chart_repository
   name       = "${local.cluster_name}-cnpg-cluster"
   atomic     = true
   namespace  = local.namespace
